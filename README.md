@@ -8,6 +8,10 @@ Explanation
 
   P1 port uses a baudrate of 9600, 7 bits, E parity and 1 stop bit. Use a 7404 to invert data signal. Every 10 seconds you get an output something like: ![alt text](https://img.skitch.com/20120430-1ub7cy17s6rjnchyrbsnuprxcy.jpg "Output P1")
 
+  Picture of my setup with a Nanode 5:
+
+  ![alt text](https://img.skitch.com/20120430-fggxi7bis7n6nc86gdahj41jy2.preview.jpg "Setup Nanode")
+
 Documentation
 =============
  See [Datalogging van "slimme meters"](http://www.zonstraal.be/wiki/Datalogging_van_%22slimme_meters%22) in Dutch
