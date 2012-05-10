@@ -1,7 +1,7 @@
 ReadP1
 ======
 
- Reading P1 Companion Standard of Dutch Smart Meter through external RX with an Arduino (or in my case a Nanode 5).
+ Reading P1 Companion Standard of Dutch Smart Meter through external RX with an Arduino (or in my case a Nanode 5) and relay data to emonWeb.org. EmonWeb is a Ruby on Rails port of emonCMS.
 
 Explanation
 ===========
