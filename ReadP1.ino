@@ -56,6 +56,7 @@ int dns_status = 0;
 
 int data_ready=0;                         // Used to signal that emontx data is ready to be sent
 
+boolean start_p1_record;
 Stash stash;                              //Use the RAM inside the ENC28J60 Ethernet controller to post data from P1 port
                                           //See http://jeelabs.org/2012/04/11/ethercard-improvements/
 
@@ -107,7 +108,7 @@ void loop () {
   dhcp_dns();  // handle dhcp and dns setup - see dhcp_dns tab
 
   // Display error states on status LED
-  if (ethernet_error==1 || ethernet_requests > 0) digitalWrite(redLED,LOW);
+  if (ethernet_error == 1 || ethernet_requests > 0) digitalWrite(redLED,LOW);
     else digitalWrite(redLED,HIGH);
 
   //-----------------------------------------------------------------------------------------------------------------
@@ -116,12 +117,20 @@ void loop () {
   while (Serial.available() > 0) {
     digitalWrite(redLED, LOW);
     char inChar = (char)Serial.read();
-    Serial.write(inChar);
-    stash.print(inChar);
+    if (inChar == '/') {
+      start_p1_record = true;
+    }
+    if (start_p1_record == true) {
+      stash.print(inChar);
+      #ifdef DEBUG
+        Serial.write(inChar);
+      #endif
+    }
     if (inChar == '!') {
       stash.save();
       digitalWrite(redLED, HIGH);
       data_ready = 1;
+      start_p1_record = false;
     }
   }
 
@@ -131,8 +140,6 @@ void loop () {
   ether.packetLoop(ether.packetReceive());
 
   if (data_ready) {
-    Serial.println("Posting data");
-
     ethernet_requests ++;
     stash.save();
     Stash::prepare(PSTR("POST http://$F/api HTTP/1.0" "\r\n"
@@ -148,7 +155,7 @@ void loop () {
 
     ethernet_requests = 0;  //Is this really functional??
     ethernet_error = 0;     //Is this really functional??
-    data_ready =0;
+    data_ready = 0;
 
     sd = stash.create();
     stash.print(START_PARAMETERS);
