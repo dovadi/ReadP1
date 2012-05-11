@@ -3,6 +3,9 @@ ReadP1
 
  Reading P1 Companion Standard of Dutch Smart Meter through external RX with an Arduino (or in my case a Nanode 5) and relay data to emonWeb.org. EmonWeb is a Ruby on Rails port of emonCMS.
 
+
+ Library is based on one real example of a so called Dutch smart meter. In this case a Iskra MT382 (see docs and ([manuals](http://www.liander.nl/liander/meters/meterhandleidingen.htm))) delivered by [Liander](http://www.liander.nl/).
+
 Explanation
 ===========
 
