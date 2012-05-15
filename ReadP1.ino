@@ -28,6 +28,7 @@ EtherCard Library by Jean-Claude Wippler and Andrew Lindsay
 */
 
 #define DEBUG     //comment out to disable serial printing to increase long term stability 
+#define SERIAL 1
 #define UNO       //anti crash wachdog reset only works with Uno (optiboot) bootloader, comment out the line if using delianuova
 #define START_PARAMETERS  "auth_token=oSq4bBaXi7cLxvbDbv2X&P1=" //Use auth_token from your own account
 
@@ -56,6 +57,7 @@ int dns_status = 0;
 
 int data_ready=0;                         // Used to signal that emontx data is ready to be sent
 
+boolean start_p1_record;
 Stash stash;                              //Use the RAM inside the ENC28J60 Ethernet controller to post data from P1 port
                                           //See http://jeelabs.org/2012/04/11/ethercard-improvements/
 
@@ -114,24 +116,35 @@ void loop () {
   // Receive data from P1
   //-----------------------------------------------------------------------------------------------------------------
   while (Serial.available() > 0) {
+
     digitalWrite(redLED, LOW);
     char inChar = (char)Serial.read();
-    Serial.write(inChar);
-    stash.print(inChar);
+
+    if (inChar == '/') {
+      start_p1_record = true;
+    }
+
+    if (start_p1_record == true) {
+      stash.print(inChar);
+      #ifdef DEBUG
+        Serial.write(inChar);
+      #endif
+    }
+
     if (inChar == '!') {
       stash.save();
       digitalWrite(redLED, HIGH);
       data_ready = 1;
+      start_p1_record = false;
     }
   }
-
+ 
   //-----------------------------------------------------------------------------------------------------------------
   // Send data via ethernet
   //-----------------------------------------------------------------------------------------------------------------
   ether.packetLoop(ether.packetReceive());
 
   if (data_ready) {
-    Serial.println("Posting data");
 
     ethernet_requests ++;
     stash.save();
@@ -145,6 +158,9 @@ void loop () {
 
     // send the packet - this also releases all stash buffers once done
     ether.tcpSend();
+    
+    Serial.println();
+    Serial.println();
 
     ethernet_requests = 0;  //Is this really functional??
     ethernet_error = 0;     //Is this really functional??
@@ -157,3 +173,4 @@ void loop () {
   if (ethernet_requests > 10) delay(10000); // Reset the nanode if more than 10 request attempts have been tried without a reply
 
 }
+
