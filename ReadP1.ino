@@ -30,13 +30,13 @@ EtherCard Library by Jean-Claude Wippler and Andrew Lindsay
 #define DEBUG     //comment out to disable serial printing to increase long term stability 
 #define SERIAL 1
 #define UNO       //anti crash wachdog reset only works with Uno (optiboot) bootloader, comment out the line if using delianuova
-#define START_PARAMETERS  "auth_token=oSq4bBaXi7cLxvbDbv2X&P1=" //Use auth_token from your own account
+#define START_PARAMETERS  "auth_token=8BrZzcR4XJsqL5Wmk1MA&P1=" //Use auth_token from your own account
 
 #include <avr/wdt.h>
 #include <EtherCard.h>  //https://github.com/jcw/ethercard 
 
 // ethernet interface mac address, must be unique on the LAN
-byte mymac[6] = { 0x00,0x04,0xA3,0x21,0xC8,0x46};
+byte mymac[6] = { 0x00,0x04,0xA3,0x21,0xC8,0x47};
 byte sd;
 
 byte Ethernet::buffer[700];
@@ -119,6 +119,10 @@ void loop () {
 
     digitalWrite(redLED, LOW);
     char inChar = (char)Serial.read();
+    #ifdef DEBUG
+        Serial.write(inChar);
+     #endif
+
 
     if (inChar == '/') {
       start_p1_record = true;
@@ -126,9 +130,9 @@ void loop () {
 
     if (start_p1_record == true) {
       stash.print(inChar);
-      #ifdef DEBUG
-        Serial.write(inChar);
-      #endif
+//      #ifdef DEBUG
+//        Serial.write(inChar);
+//      #endif  
     }
 
     if (inChar == '!') {
