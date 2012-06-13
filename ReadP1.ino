@@ -160,9 +160,10 @@ void loop () {
     free_stash_memory = Stash::freeCount();
     #ifdef DEBUG
       Serial.println();
-      Serial.println();
-      Serial.print('Number of byte free in Stash memory: ')
+      Serial.print('Number of bytes free in Stash memory: ');
       Serial.println(free_stash_memory, DEC);
+      Serial.println();
+      Serial.println();
     #endif
 
     //No response from server consumes memory from the Stash,
@@ -170,9 +171,6 @@ void loop () {
     if (free_stash_memory == 0){
       delay(10000);
     }
-
-    Serial.println();
-    Serial.println();
 
     data_ready =0;
 
