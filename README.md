@@ -13,9 +13,11 @@ Explanation
 
   Every 10 seconds you get an output something like: ![alt text](https://img.skitch.com/20120430-1ub7cy17s6rjnchyrbsnuprxcy.jpg "Output P1")
 
-  Picture of my setup with a Nanode 5:
+  Picture of my shield (designed with ['Fritzing'](http://fritzing.org/)) with a Nanode RF:
 
-  ![alt text](https://img.skitch.com/20120430-fggxi7bis7n6nc86gdahj41jy2.medium.jpg "Setup Nanode")
+  ![alt text](http://img.skitch.com/20120613-pr3rn9hue83ecfxrjgp5uh3ss6.medium.jpg "Setup Nanode")
+
+  See also the ['first'](http://img.skitch.com/20120430-ke5a3ds5fknc69j8ukk6r8pyt4.jpg) and ['second iteration'](http://img.skitch.com/20120529-pwdub7is7u554bnpthadhnxss5.preview.jpg) of the setup.
 
 Documentation
 =============
