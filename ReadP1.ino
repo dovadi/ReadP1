@@ -37,12 +37,13 @@ EtherCard Library by Jean-Claude Wippler and Andrew Lindsay
 // ethernet interface mac address, must be unique on the LAN
 byte mymac[6] = { 0x00,0x04,0xA3,0x21,0xC8,0x46};
 byte sd;
+byte free_stash_memory;
 
 byte Ethernet::buffer[700];
 
 //Domain name of remote webserver - leave blank if posting to IP address 
 char website[] PROGMEM = "emonweb.org";
-//static byte hisip[] = { 192, 168, 2, 34};    // un-comment for posting to static IP server (no domain name) 
+//static byte hisip[] = { 192, 168, 2, 76};    // un-comment for posting to static IP server (no domain name) 
 
 const int redLED = 6;                     // NanodeRF RED indicator LED
 const int requestPin =  4;
@@ -81,14 +82,12 @@ void setup () {
 
   dhcp_status = 0;
   dns_status = 0;
-  ethernet_requests = 0;
-  ethernet_error=0;
 
   sd = stash.create();
   stash.print(START_PARAMETERS);
 
   #ifdef UNO
-  wdt_enable(WDTO_8S);
+    wdt_enable(WDTO_8S);
   #endif;
 
   pinMode(requestPin, OUTPUT);
@@ -102,7 +101,7 @@ void setup () {
 void loop () {
 
   #ifdef UNO
-  wdt_reset();
+    wdt_reset();
   #endif
 
   dhcp_dns();  // handle dhcp and dns setup - see dhcp_dns tab
@@ -115,17 +114,22 @@ void loop () {
   // Receive data from P1
   //-----------------------------------------------------------------------------------------------------------------
   while (Serial.available() > 0) {
+
     digitalWrite(redLED, LOW);
     char inChar = (char)Serial.read();
+
+    #ifdef DEBUG
+      Serial.write(inChar);
+    #endif
+
     if (inChar == '/') {
       start_p1_record = true;
     }
+
     if (start_p1_record == true) {
       stash.print(inChar);
-      #ifdef DEBUG
-        Serial.write(inChar);
-      #endif
     }
+
     if (inChar == '!') {
       stash.save();
       digitalWrite(redLED, HIGH);
@@ -133,14 +137,13 @@ void loop () {
       start_p1_record = false;
     }
   }
-
+ 
   //-----------------------------------------------------------------------------------------------------------------
   // Send data via ethernet
   //-----------------------------------------------------------------------------------------------------------------
   ether.packetLoop(ether.packetReceive());
 
   if (data_ready) {
-    ethernet_requests ++;
     stash.save();
     Stash::prepare(PSTR("POST http://$F/api HTTP/1.0" "\r\n"
                         "Host: $F" "\r\n"
@@ -153,14 +156,25 @@ void loop () {
     // send the packet - this also releases all stash buffers once done
     ether.tcpSend();
 
-    ethernet_requests = 0;  //Is this really functional??
-    ethernet_error = 0;     //Is this really functional??
-    data_ready = 0;
+    free_stash_memory = Stash::freeCount();
+    #ifdef DEBUG
+      Serial.println();
+      Serial.print("Number of bytes free in Stash memory: ");
+      Serial.println(free_stash_memory, DEC);
+      Serial.println();
+      Serial.println();
+    #endif
+
+    //No response from server consumes memory from the Stash,
+    //so if no memory left, reset the arduino (delay is longer than WDTO_8S)
+    if (free_stash_memory == 0){
+      delay(10000);
+    }
+ 
+    data_ready =0;
 
     sd = stash.create();
     stash.print(START_PARAMETERS);
   }
-
-  if (ethernet_requests > 10) delay(10000); // Reset the nanode if more than 10 request attempts have been tried without a reply
 
 }
