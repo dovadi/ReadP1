@@ -9,9 +9,9 @@ ReadP1
 Explanation
 ===========
 
-  P1 port uses a baudrate of 9600, 7 bits, E parity and 1 stop bit. Use a 7404 to invert data signal.
+  P1 port uses a baudrate of 9600, 7 bits, E parity and 1 stop bit. Use a 7404 to invert data signal. Every 10 seconds you get an output something like:
 
-  Every 10 seconds you get an output something like: ![alt text](https://img.skitch.com/20120430-1ub7cy17s6rjnchyrbsnuprxcy.jpg "Output P1")
+  ![alt text](https://img.skitch.com/20120430-1ub7cy17s6rjnchyrbsnuprxcy.jpg "Output P1")
 
   Picture of my shield (designed with ['Fritzing'](http://fritzing.org/)) with a Nanode RF:
 
