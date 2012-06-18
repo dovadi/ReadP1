@@ -43,8 +43,8 @@ byte free_stash_memory;
 byte Ethernet::buffer[700];
 
 //Domain name of remote webserver - leave blank if posting to IP address 
-char website[] PROGMEM = "192.168.2.76";
-static byte hisip[] = { 192, 168, 2, 76};    // un-comment for posting to static IP server (no domain name) 
+char website[] PROGMEM = "192.168.2.96";
+static byte hisip[] = { 192, 168, 2, 96};    // un-comment for posting to static IP server (no domain name) 
 
 const int redLED = 6;                     // NanodeRF RED indicator LED
 const int requestPin =  4;
@@ -160,7 +160,7 @@ void loop () {
     free_stash_memory = Stash::freeCount();
     #ifdef DEBUG
       Serial.println();
-      Serial.print('Number of bytes free in Stash memory: ');
+      Serial.print("Number of bytes free in Stash memory: ");
       Serial.println(free_stash_memory, DEC);
       Serial.println();
       Serial.println();
