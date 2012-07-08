@@ -3,19 +3,23 @@ ReadP1
 
  Reading P1 Companion Standard of Dutch Smart Meter through external RX with an Arduino (or in my case a Nanode 5) and relay data to emonWeb.org. EmonWeb is a Ruby on Rails port of emonCMS.
 
+ Library is tested in the field with:
 
- Library is based on one real example of a so called Dutch smart meter. In this case a Iskra MT382 (see docs and ([manuals](http://www.liander.nl/liander/meters/meterhandleidingen.htm))) delivered by [Liander](http://www.liander.nl/).
+ * A Iskra MT382 (see docs and ([manuals](http://www.liander.nl/liander/meters/meterhandleidingen.htm))) delivered by [Liander](http://www.liander.nl/).
+ * A Kamstrup 162 [Kamstrup.nl](http://kamstrup.nl/7885/Kamstrup-162)
 
 Explanation
 ===========
 
-  P1 port uses a baudrate of 9600, 7 bits, E parity and 1 stop bit. Use a 7404 to invert data signal.
+  P1 port uses a baudrate of 9600, 7 bits, E parity and 1 stop bit. Use a 7404 to invert data signal. Every 10 seconds you get an output something like:
 
-  Every 10 seconds you get an output something like: ![alt text](https://img.skitch.com/20120430-1ub7cy17s6rjnchyrbsnuprxcy.jpg "Output P1")
+  ![alt text](https://img.skitch.com/20120430-1ub7cy17s6rjnchyrbsnuprxcy.jpg "Output P1")
 
-  Picture of my setup with a Nanode 5:
+  Picture of my shield (designed with ['Fritzing'](http://fritzing.org/)) with a Nanode RF:
 
-  ![alt text](https://img.skitch.com/20120430-fggxi7bis7n6nc86gdahj41jy2.medium.jpg "Setup Nanode")
+  ![alt text](http://img.skitch.com/20120613-pr3rn9hue83ecfxrjgp5uh3ss6.medium.jpg "Setup Nanode")
+
+  See also the ['first'](http://img.skitch.com/20120430-ke5a3ds5fknc69j8ukk6r8pyt4.jpg) and ['second iteration'](http://img.skitch.com/20120529-pwdub7is7u554bnpthadhnxss5.preview.jpg) of the setup.
 
 Documentation
 =============

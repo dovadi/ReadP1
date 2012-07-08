@@ -28,15 +28,15 @@ EtherCard Library by Jean-Claude Wippler and Andrew Lindsay
 */
 
 #define DEBUG     //comment out to disable serial printing to increase long term stability 
-#define SERIAL 1
 #define UNO       //anti crash wachdog reset only works with Uno (optiboot) bootloader, comment out the line if using delianuova
-#define START_PARAMETERS  "auth_token=8BrZzcR4XJsqL5Wmk1MA&P1=" //Use auth_token from your own account
+#define RESET  "auth_token=8BrZzcR4XJsqL5Wmk1MA&RS=1" //Use auth_token from your own account
+#define START_PARAMETERS  "auth_token=8BrZzcR4XJsqL5Wmk1MA&P1="
 
 #include <avr/wdt.h>
 #include <EtherCard.h>  //https://github.com/jcw/ethercard 
 
 // ethernet interface mac address, must be unique on the LAN
-byte mymac[6] = { 0x00,0x04,0xA3,0x21,0xC8,0x52};
+byte mymac[6] = { 0x00,0x04,0xA3,0x21,0xC8,0x46};
 byte sd;
 byte free_stash_memory;
 
@@ -56,7 +56,12 @@ int ethernet_requests = 0;                // count ethernet requests without rep
 int dhcp_status = 0;
 int dns_status = 0;
 
-int data_ready=0;                         // Used to signal that emontx data is ready to be sent
+int serial_input = 0;
+
+int data_ready = 0;                       // Used to signal that emontx data is ready to be sent
+int reset = 0;
+int nof_times = 0;
+int reset_reason = 0;
 
 boolean start_p1_record;
 Stash stash;                              //Use the RAM inside the ENC28J60 Ethernet controller to post data from P1 port
@@ -83,9 +88,7 @@ void setup () {
 
   dhcp_status = 0;
   dns_status = 0;
-
-  sd = stash.create();
-  stash.print(START_PARAMETERS);
+  reset = 1;
 
   #ifdef UNO
     wdt_enable(WDTO_8S);
@@ -101,23 +104,29 @@ void setup () {
 //**********************************************************************************************************************
 void loop () {
 
+  dhcp_dns();  // handle dhcp and dns setup - see dhcp_dns tab
+
+  // Display error states on status LED
+  if (ethernet_error == 1 || ethernet_requests > 0) digitalWrite(redLED,LOW);
+    else digitalWrite(redLED,HIGH);
+
   #ifdef UNO
     wdt_reset();
   #endif
 
-  dhcp_dns();  // handle dhcp and dns setup - see dhcp_dns tab
-
-  // Display error states on status LED
-  if (ethernet_error==1 || ethernet_requests > 0) digitalWrite(redLED,LOW);
-    else digitalWrite(redLED,HIGH);
-
   //-----------------------------------------------------------------------------------------------------------------
   // Receive data from P1
   //-----------------------------------------------------------------------------------------------------------------
+  
+  serial_input = 0;
+
   while (Serial.available() > 0) {
 
     digitalWrite(redLED, LOW);
     char inChar = (char)Serial.read();
+
+    serial_input += 1;
+
     #ifdef DEBUG
       Serial.write(inChar);
     #endif
@@ -136,28 +145,54 @@ void loop () {
       data_ready = 1;
       start_p1_record = false;
     }
+
+    if (serial_input > 800) {
+      reset_reason = 1;
+      delay(10000); //Unable to determine the end of P1 datagram
+    }
   }
- 
+
   //-----------------------------------------------------------------------------------------------------------------
   // Send data via ethernet
   //-----------------------------------------------------------------------------------------------------------------
   ether.packetLoop(ether.packetReceive());
-
+ 
   if (data_ready) {
 
+    nof_times += 1; 
+
+    //Connection needs time to build up, so no post RST on the first few times
+    if (reset == 1 && nof_times > 2) {
+      #ifdef DEBUG
+        Serial.print("Reset true!!!!");
+      #endif
+      stash.print("&RST=1");
+      switch (reset_reason) {
+        case 1:
+          stash.print("&REA=SNE");
+        case 2:
+          stash.print("&REA=MEM");
+        default: 
+          stash.print("&REA=UNK");
+      }
+      reset = 0;
+      reset_reason = 0;
+    }
+
     stash.save();
-    Stash::prepare(PSTR("POST /api HTTP/1.0" "\r\n"
+
+    Stash::prepare(PSTR("POST /p1 HTTP/1.0" "\r\n"
                         "Host: $F" "\r\n"
                         "User-Agent: Nanode EtherCard lib" "\r\n"
                         "Content-Length: $D" "\r\n"
                         "\r\n"
                         "$H"),
                         website, stash.size(), sd);
-
     // send the packet - this also releases all stash buffers once done
     ether.tcpSend();
 
     free_stash_memory = Stash::freeCount();
+
     #ifdef DEBUG
       Serial.println();
       Serial.print("Number of bytes free in Stash memory: ");
@@ -169,6 +204,7 @@ void loop () {
     //No response from server consumes memory from the Stash,
     //so if no memory left, reset the arduino (delay is longer than WDTO_8S)
     if (free_stash_memory == 0){
+      reset_reason = 2;
       delay(10000);
     }
 

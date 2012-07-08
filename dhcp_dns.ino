@@ -29,9 +29,9 @@ void dhcp_dns()
       static byte dnsip[] = {8,8,8,8};
       ether.copyIp(ether.dnsip, dnsip);
       ether.printIp("DNS: ", ether.dnsip);
-     ether.copyIp(ether.hisip, hisip);                             // un-comment for posting to static IP server (no domain name)
-     ether.hisport = 3000;
-     dns_status = 1;                                               // un-comment for posting to static IP server (no domain name)            
+      ether.copyIp(ether.hisip, hisip);                             // un-comment for posting to static IP server (no domain name)
+      ether.hisport = 3000;
+      dns_status = 1;                                               // un-comment for posting to static IP server (no domain name)            
     } else { ethernet_error = 1; }
   }
   
