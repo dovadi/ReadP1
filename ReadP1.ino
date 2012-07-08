@@ -27,10 +27,9 @@ http://openenergymonitor.org/emon/license
 EtherCard Library by Jean-Claude Wippler and Andrew Lindsay
 */
 
-#define DEBUG     //comment out to disable serial printing to increase long term stability 
+//#define DEBUG     //comment out to disable serial printing to increase long term stability 
 #define UNO       //anti crash wachdog reset only works with Uno (optiboot) bootloader, comment out the line if using delianuova
-#define RESET  "auth_token=8BrZzcR4XJsqL5Wmk1MA&RS=1" //Use auth_token from your own account
-#define START_PARAMETERS  "auth_token=8BrZzcR4XJsqL5Wmk1MA&P1="
+#define START_PARAMETERS  "auth_token=qqbUzX2V8UKUDwxZyBhR&P1="
 
 #include <avr/wdt.h>
 #include <EtherCard.h>  //https://github.com/jcw/ethercard 
@@ -43,8 +42,8 @@ byte free_stash_memory;
 byte Ethernet::buffer[700];
 
 //Domain name of remote webserver - leave blank if posting to IP address 
-char website[] PROGMEM = "192.168.2.96";
-static byte hisip[] = { 192, 168, 2, 96};    // un-comment for posting to static IP server (no domain name) 
+char website[] PROGMEM = "emonweb.org";
+//static byte hisip[] = { 192, 168, 2, 96};    // un-comment for posting to static IP server (no domain name) 
 
 const int redLED = 6;                     // NanodeRF RED indicator LED
 const int requestPin =  4;
@@ -181,13 +180,14 @@ void loop () {
 
     stash.save();
 
-    Stash::prepare(PSTR("POST /p1 HTTP/1.0" "\r\n"
+    Stash::prepare(PSTR("POST http://$F/api HTTP/1.0" "\r\n"
                         "Host: $F" "\r\n"
                         "User-Agent: Nanode EtherCard lib" "\r\n"
                         "Content-Length: $D" "\r\n"
                         "\r\n"
                         "$H"),
-                        website, stash.size(), sd);
+                        website, website, stash.size(), sd);
+
     // send the packet - this also releases all stash buffers once done
     ether.tcpSend();
 
