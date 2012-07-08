@@ -180,7 +180,7 @@ void loop () {
 
     stash.save();
 
-    Stash::prepare(PSTR("POST http://$F/api HTTP/1.0" "\r\n"
+    Stash::prepare(PSTR("POST http://$F/p1 HTTP/1.0" "\r\n"
                         "Host: $F" "\r\n"
                         "User-Agent: Nanode EtherCard lib" "\r\n"
                         "Content-Length: $D" "\r\n"
