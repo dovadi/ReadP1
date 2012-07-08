@@ -29,7 +29,8 @@ EtherCard Library by Jean-Claude Wippler and Andrew Lindsay
 
 //#define DEBUG     //comment out to disable serial printing to increase long term stability 
 #define UNO       //anti crash wachdog reset only works with Uno (optiboot) bootloader, comment out the line if using delianuova
-#define START_PARAMETERS  "auth_token=qqbUzX2V8UKUDwxZyBhR&P1=" //Use auth_token from your own account
+#define START_PARAMETERS  "auth_token=qqbUzX2V8UKUDwxZyBhR&s=1&P1=" //Use auth_token from your own account
+#define NEW_RECORD  "auth_token=qqbUzX2V8UKUDwxZyBhR&P1="
 
 #include <avr/wdt.h>
 #include <EtherCard.h>  //https://github.com/jcw/ethercard 
@@ -54,6 +55,8 @@ int ethernet_requests = 0;                // count ethernet requests without rep
 
 int dhcp_status = 0;
 int dns_status = 0;
+
+int serial_input = 0;
 
 int data_ready=0;                         // Used to signal that emontx data is ready to be sent
 
@@ -113,10 +116,15 @@ void loop () {
   //-----------------------------------------------------------------------------------------------------------------
   // Receive data from P1
   //-----------------------------------------------------------------------------------------------------------------
+  
+  serial_input = 0;
+
   while (Serial.available() > 0) {
 
     digitalWrite(redLED, LOW);
     char inChar = (char)Serial.read();
+
+    serial_input += 1;
 
     #ifdef DEBUG
       Serial.write(inChar);
@@ -136,8 +144,12 @@ void loop () {
       data_ready = 1;
       start_p1_record = false;
     }
+
+    if (serial_input > 800) {
+      delay(10000); //Unable to determine the end of P1 datagram
+    }
   }
- 
+
   //-----------------------------------------------------------------------------------------------------------------
   // Send data via ethernet
   //-----------------------------------------------------------------------------------------------------------------
@@ -174,7 +186,7 @@ void loop () {
     data_ready =0;
 
     sd = stash.create();
-    stash.print(START_PARAMETERS);
+    stash.print(NEW_RECORD);
   }
 
 }
