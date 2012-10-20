@@ -29,22 +29,23 @@ EtherCard Library by Jean-Claude Wippler and Andrew Lindsay
 
 #define DEBUG     //comment out to disable serial printing to increase long term stability 
 #define UNO       //anti crash wachdog reset only works with Uno (optiboot) bootloader, comment out the line if using delianuova
-#define RESET  "auth_token=8BrZzcR4XJsqL5Wmk1MA&RS=1" //Use auth_token from your own account
 #define START_PARAMETERS  "auth_token=8BrZzcR4XJsqL5Wmk1MA&P1="
 
 #include <avr/wdt.h>
-#include <EtherCard.h>  //https://github.com/jcw/ethercard 
+#include <EtherCard.h>  //https://github.com/jcw/ethercard
+#include <SRAM9.h>
 
 // ethernet interface mac address, must be unique on the LAN
-byte mymac[6] = { 0x00,0x04,0xA3,0x21,0xC8,0x46};
+byte mymac[6] = { 0x00,0x04,0xA3,0x21,0xC8,0x56};
 byte sd;
 byte free_stash_memory;
 
 byte Ethernet::buffer[700];
 
 //Domain name of remote webserver - leave blank if posting to IP address 
-char website[] PROGMEM = "192.168.2.96";
-static byte hisip[] = { 192, 168, 2, 96};    // un-comment for posting to static IP server (no domain name) 
+char website[] PROGMEM = "192.168.2.211";
+char id_token[] PROGMEM = "f601fd829cfe04afbe";
+static byte hisip[] = { 192, 168, 2, 211};    // un-comment for posting to static IP server (no domain name) 
 
 const int redLED = 6;                     // NanodeRF RED indicator LED
 const int requestPin =  4;
@@ -61,7 +62,9 @@ int serial_input = 0;
 int data_ready = 0;                       // Used to signal that emontx data is ready to be sent
 int reset = 0;
 int nof_times = 0;
-int reset_reason = 0;
+
+static byte session;
+String stringReply;
 
 boolean start_p1_record;
 Stash stash;                              //Use the RAM inside the ENC28J60 Ethernet controller to post data from P1 port
@@ -103,6 +106,18 @@ void setup () {
 // LOOP
 //**********************************************************************************************************************
 void loop () {
+
+  stringReply = "";
+
+  const char* reply = ether.tcpReply(session);
+  if (reply != 0){
+    int size = strlen(reply);
+    #ifdef DEBUG
+      Serial.println(size);
+      Serial.println(">>>> RESPONSE RECEIVED -----");
+      Serial.println(reply);
+    #endif
+  }
 
   dhcp_dns();  // handle dhcp and dns setup - see dhcp_dns tab
 
@@ -147,16 +162,24 @@ void loop () {
     }
 
     if (serial_input > 800) {
-      reset_reason = 1;
+      storeState(0x01);
       delay(10000); //Unable to determine the end of P1 datagram
     }
+
+    free_stash_memory = Stash::freeCount();
+    if (free_stash_memory < 20){
+      storeState(0x02);
+      delay(10000);
+    }
+
   }
 
   //-----------------------------------------------------------------------------------------------------------------
   // Send data via ethernet
   //-----------------------------------------------------------------------------------------------------------------
+
   ether.packetLoop(ether.packetReceive());
- 
+
   if (data_ready) {
 
     nof_times += 1; 
@@ -166,8 +189,9 @@ void loop () {
       #ifdef DEBUG
         Serial.print("Reset true!!!!");
       #endif
+      SRAM9.readstream(0);
       stash.print("&RST=1");
-      switch (reset_reason) {
+      switch (SRAM9.RWdata(0xFF)) {
         case 1:
           stash.print("&REA=SNE");
         case 2:
@@ -176,7 +200,7 @@ void loop () {
           stash.print("&REA=UNK");
       }
       reset = 0;
-      reset_reason = 0;
+      storeState(0x00);
     }
 
     stash.save();
@@ -185,11 +209,17 @@ void loop () {
                         "Host: $F" "\r\n"
                         "User-Agent: Nanode EtherCard lib" "\r\n"
                         "Content-Length: $D" "\r\n"
+                        "ID_token: $F" "\r\n"
                         "\r\n"
                         "$H"),
-                        website, stash.size(), sd);
+                        website, stash.size(), id_token, sd);
+
     // send the packet - this also releases all stash buffers once done
-    ether.tcpSend();
+
+    session = ether.tcpSend();
+
+    Serial.println("=SESSION");
+    Serial.println(session);
 
     free_stash_memory = Stash::freeCount();
 
@@ -204,7 +234,7 @@ void loop () {
     //No response from server consumes memory from the Stash,
     //so if no memory left, reset the arduino (delay is longer than WDTO_8S)
     if (free_stash_memory == 0){
-      reset_reason = 2;
+      storeState(0x03);
       delay(10000);
     }
 
@@ -214,4 +244,10 @@ void loop () {
     stash.print(START_PARAMETERS);
   }
 
+}
+
+void storeState (byte state){
+  SRAM9.writestream(0);
+  SRAM9.RWdata(state);
+  SRAM9.closeRWstream();
 }
