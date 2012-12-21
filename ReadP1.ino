@@ -1,10 +1,13 @@
 /*
- _   _                       _      
-| \ | | __ _ _ __   ___   __| | ___ 
-|  \| |/ _` | '_ \ / _ \ / _` |/ _ \
-| |\  | (_| | | | | (_) | (_| |  __/
-|_| \_|\__,_|_| |_|\___/ \__,_|\___|
-                                    
+ _______ _________ _        _        _______  _______ 
+(  ____ \\__   __/( (    /|| \    /\(  ____ \(  ___  )
+| (    \/   ) (   |  \  ( ||  \  / /| (    \/| (   ) |
+| |         | |   |   \ | ||  (_/ / | |      | |   | |
+| | ____    | |   | (\ \) ||   _ (  | | ____ | |   | |
+| | \_  )   | |   | | \   ||  ( \ \ | | \_  )| |   | |
+| (___) |___) (___| )  \  ||  /  \ \| (___) || (___) |
+(_______)\_______/|/    )_)|_/    \/(_______)(_______)
+
  _____                    __        __   _       ____  _ 
 | ____|_ __ ___   ___  _ _\ \      / /__| |__   |  _ \/ |
 |  _| | '_ ` _ \ / _ \| '_ \ \ /\ / / _ \ '_ \  | |_) | |
@@ -42,13 +45,15 @@ byte free_stash_memory;
 
 byte Ethernet::buffer[700];
 
+char id_token[] PROGMEM = "qqbUzX2V8UKUDwxZyBhR";
+
 //Domain name of remote webserver - leave blank if posting to IP address 
 
 char website[] PROGMEM = "emonweb.org";
 // static byte hisip[] = { 192, 168, 2, 211};    // un-comment for posting to static IP server (no domain name) 
 
-const int redLED = 6;                     // NanodeRF RED indicator LED
-const int requestPin =  4;
+const int redLED = A1;
+const int requestPin =  6;
 
 int ethernet_error = 0;                   // Etherent (controller/DHCP) error flag
 int rf_error = 0;                         // RF error flag - high when no data received 
@@ -75,7 +80,6 @@ Stash stash;                              //Use the RAM inside the ENC28J60 Ethe
 //**********************************************************************************************************************
 void setup () {
 
-  //High means off since NanodeRF tri-state buffer inverts signal
   pinMode(redLED, OUTPUT); digitalWrite(redLED,LOW);
   delay(100); digitalWrite(redLED,HIGH);                      // turn off redLED
 
@@ -166,13 +170,11 @@ void loop () {
     }
 
     if (serial_input > 800) {
-      storeState(0x01);
       delay(10000); //Unable to determine the end of P1 datagram
     }
 
     free_stash_memory = Stash::freeCount();
     if (free_stash_memory < 20){
-      storeState(0x02);
       delay(10000);
     }
 
@@ -193,31 +195,20 @@ void loop () {
       #ifdef DEBUG
         Serial.print("Reset true!!!!");
       #endif
-      SRAM9.readstream(0);
-      stash.print("&RST=1");
-      switch (SRAM9.RWdata(0xFF)) {
-        case 1:
-          stash.print("&REA=SNE");
-        case 2:
-          stash.print("&REA=MEM");
-        case 3:
-          stash.print("&REA=NOR");
-        default: 
-          stash.print("&REA=UNK");
-      }
+      stash.print("&RST=1&REA=UNK");
       reset = 0;
-      storeState(0x00);
     }
 
     stash.save();
 
     Stash::prepare(PSTR("POST http://$F/p1 HTTP/1.0" "\r\n"
                         "Host: $F" "\r\n"
-                        "User-Agent: Nanode P1 reader 0.2" "\r\n"
+                        "User-Agent: Ginkgo P1 reader 0.3" "\r\n"
                         "Content-Length: $D" "\r\n"
+                        "ID_token: $F" "\r\n"
                         "\r\n"
                         "$H"),
-                        website, website, stash.size(), sd);
+                        website, website, stash.size(), id_token, sd);
 
     // send the packet - this also releases all stash buffers once done
 
