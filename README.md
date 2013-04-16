@@ -13,11 +13,14 @@ Explanation
 
   P1 port uses a baudrate of 9600, 7 bits, E parity and 1 stop bit. Use a 7404 to invert data signal. Every 10 seconds you get an output something like:
 
-  ![alt text](https://img.skitch.com/20120430-1ub7cy17s6rjnchyrbsnuprxcy.jpg "Output P1")
+  <center>![alt text](https://img.skitch.com/20120430-1ub7cy17s6rjnchyrbsnuprxcy.jpg "Output P1")</center>
 
   Picture of the SMD shield based on a JeeNode:
 
-  ![alt text](https://www.evernote.com/shard/s1/sh/7b846eec-f594-48e2-91d3-c53a9d2784b6/b4c8b0941fcdefd75e16b3394f1383d2/res/ee6c9843-53c6-4a13-b50e-6282c85802fc/skitch.png "SMD version")
+
+  <center>![alt text](https://dl.dropboxusercontent.com/u/102585/ginkgo_pcb%20.jpg "SMD pcb")</center>
+
+  <center>![alt text](https://dl.dropboxusercontent.com/u/102585/ginkgo_reader.jpg "Ginkgo")</center>
 
   See also the ['first'](http://img.skitch.com/20120430-ke5a3ds5fknc69j8ukk6r8pyt4.jpg) and ['second iteration'](http://img.skitch.com/20120529-pwdub7is7u554bnpthadhnxss5.preview.jpg) and ['third'](http://img.skitch.com/20120613-pr3rn9hue83ecfxrjgp5uh3ss6.medium.jpg) of the setup.
 
